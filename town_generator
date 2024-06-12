@@ -1,0 +1,50 @@
+from random import randint
+
+class World_Map:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.world_map = [['.' for i in range(width)]for i in range(height)]
+        self.town_symbol = '#' # Used to represent a 'Town' when world_map is displayed
+        
+    def display(self): # Displays map on screen
+        for i in self.world_map:
+            print(' '.join(i))
+        
+    def place_towns(self, number_of_towns, padding): # Represented by '#' in world_map
+        
+        for i in range(number_of_towns):
+            
+            while 1:
+                # Generate Random Integers (potential 'Town' location)
+                x = randint(0,self.width - 1)
+                y = randint(0,self.height - 1)
+                
+                # Set min-max values of X and Y based on desired padding (free space around 'Towns')
+                x_floor = x - padding
+                x_ceiling = x + padding + 1
+                y_floor = y - padding
+                y_ceiling = y + padding + 1
+                
+                # Keeps integers above zero to prevent pulling values from 'end of lists'
+                if x_floor < 0: x_floor = 0 
+                if y_floor < 0: y_floor = 0
+                
+                # Generates 2D array of 'rows' from world_map
+                y_vals = self.world_map[y_floor:y_ceiling] 
+                
+                # Generates 2D array from y_vals of all values within specified 'padding' range of potential 'town location'
+                x_vals = [row[x_floor:x_ceiling] for row in y_vals] 
+                
+                # Checks x_vals to determine if Town(#) already exists within 'range' of potential location
+                if self.town_symbol in [i for i in x_vals]: 
+                    pass
+                else:
+                    self.world_map[y][x] = self.town_symbol
+                    break
+                    
+M = World_Map(16,8) # Make 'World Map'
+M.place_towns(5, 1) # Make 'Towns'         
+
+M.display() # Show map
+
