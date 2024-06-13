@@ -6,6 +6,8 @@ class World_Map:
         self.height = height
         self.world_map = [['.' for i in range(width)]for i in range(height)]
         self.town_symbol = '#' # Used to represent a 'Town' when world_map is displayed
+        self.road_symbol = '%'
+        self.towns = []
         
     def display(self): # Displays map on screen
         for i in self.world_map:
@@ -30,21 +32,26 @@ class World_Map:
                 if x_floor < 0: x_floor = 0 
                 if y_floor < 0: y_floor = 0
                 
-                # Generates 2D array of 'rows' from world_map
-                y_vals = self.world_map[y_floor:y_ceiling] 
+                # Creates blank list to fill with the current valid neighbor locations
+                neighbors = []
                 
-                # Generates 2D array from y_vals of all values within specified 'padding' range of potential 'town location'
-                x_vals = [row[x_floor:x_ceiling] for row in y_vals] 
-                
-                # Checks x_vals to determine if Town(#) already exists within 'range' of potential location
-                if self.town_symbol in [i for i in x_vals]: 
+                # Checks all possible combos of positive and negative x and y values (i.e. all neighboring locations around a 9x9 square radius from the current point)
+                for a in range(-1, 2):      # x axis
+                    for b in range(-1, 2):    # y axis 
+                        # Prevents errors when attempting to check nonexistent locations around edge/corner points
+                        try:
+                            neighbors.append(self.world_map[y+a][x+b])
+                        except:
+                            pass
+                                      
+                if self.town_symbol in neighbors: 
                     pass
                 else:
                     self.world_map[y][x] = self.town_symbol
+                    self.towns.append((y,x)) # Adds XY tuple to towns list 
                     break
-                    
+ 
 M = World_Map(16,8) # Make 'World Map'
-M.place_towns(5, 1) # Make 'Towns'         
-
+M.place_towns(20, 1) # Make 'Towns'         
 M.display() # Show map
 
