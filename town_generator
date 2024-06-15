@@ -1,57 +1,86 @@
 from random import randint
 
+class Town:
+    def __init__(self, name, location, world_map):
+        self.name = name
+        self.location = location
+        self.has_road = False
+        self.connected_to = [object]
+        self.world_map = world_map
+        world_map.world_map[location[1]][location[0]] = '#'
+
+
 class World_Map:
     def __init__(self, width, height):
         self.width = width
         self.height = height
         self.world_map = [['.' for i in range(width)]for i in range(height)]
         self.town_symbol = '#' # Used to represent a 'Town' when world_map is displayed
-        self.road_symbol = '%'
         self.towns = []
-        
+
     def display(self): # Displays map on screen
         for i in self.world_map:
             print(' '.join(i))
-        
+
+    def get(self, location):
+        return self.world_map[location[1]][location[0]]
+
     def place_towns(self, number_of_towns, padding): # Represented by '#' in world_map
-        
+
         for i in range(number_of_towns):
-            
+
             while 1:
                 # Generate Random Integers (potential 'Town' location)
                 x = randint(0,self.width - 1)
                 y = randint(0,self.height - 1)
-                
-                # Set min-max values of X and Y based on desired padding (free space around 'Towns')
-                x_floor = x - padding
-                x_ceiling = x + padding + 1
-                y_floor = y - padding
-                y_ceiling = y + padding + 1
-                
-                # Keeps integers above zero to prevent pulling values from 'end of lists'
-                if x_floor < 0: x_floor = 0 
-                if y_floor < 0: y_floor = 0
-                
+
                 # Creates blank list to fill with the current valid neighbor locations
                 neighbors = []
-                
+
                 # Checks all possible combos of positive and negative x and y values (i.e. all neighboring locations around a 9x9 square radius from the current point)
-                for a in range(-1, 2):      # x axis
-                    for b in range(-1, 2):    # y axis 
+                for a in range(-padding, padding + 1):      # x axis
+                    for b in range(-padding, padding + 1):    # y axis
                         # Prevents errors when attempting to check nonexistent locations around edge/corner points
                         try:
                             neighbors.append(self.world_map[y+a][x+b])
                         except:
                             pass
-                                      
-                if self.town_symbol in neighbors: 
+
+                if self.town_symbol in neighbors:
                     pass
                 else:
-                    self.world_map[y][x] = self.town_symbol
-                    self.towns.append((y,x)) # Adds XY tuple to towns list 
+                    T = Town('name', (x,y), self)
+                    self.towns.append(T)
                     break
- 
+
+    def find_closest_neighbor(self, location, radius):
+        for i in range(radius):
+            neighbors = []
+            x = location[0]
+            y = location[1]
+            for a in range(-radius, radius + 1):      # x axis
+                for b in range(-radius, radius + 1):    # y axis
+                    # Prevents errors when attempting to check nonexistent locations around edge/corner points
+                    try:
+                        neighbors.append(self.world_map[y+b][x+a])
+                    except IndexError:
+                        pass
+
+            return neighbors[0]
+
+    def place_roads(self):
+        for town in self.towns:
+            if not town.has_road:
+                neighbor = self.find_closest_neighbor(town.location, 2)
+
+                print(neighbor)
+
+                start = town.location
+                #end = neighbor.location
+
+
 M = World_Map(16,8) # Make 'World Map'
-M.place_towns(20, 1) # Make 'Towns'         
+M.place_towns(12, 1) # Make 'Towns'
+M.place_roads()
 M.display() # Show map
 
