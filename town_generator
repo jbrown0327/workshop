@@ -1,5 +1,8 @@
 from random import randint
+import os
 
+TOWN_SYMBOL = '#'
+ROAD_SYMBOL = '-'
 class Town:
     def __init__(self, name, location, world_map):
         self.name = name
@@ -7,15 +10,16 @@ class Town:
         self.has_road = False
         self.connected_to = [object]
         self.world_map = world_map
-        world_map.world_map[location[1]][location[0]] = '#'
+        world_map.world_map[location[0]][location[1]] = TOWN_SYMBOL
 
 
 class World_Map:
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.world_map = [['.' for i in range(width)]for i in range(height)]
-        self.town_symbol = '#' # Used to represent a 'Town' when world_map is displayed
+        self.world_map = [[' ' for i in range(width)]for i in range(height)]
+        self.town_symbol = TOWN_SYMBOL # Used to represent a 'Town' when world_map is displayed
+        self.road_symbol = ROAD_SYMBOL
         self.towns = []
 
     def display(self): # Displays map on screen
@@ -49,38 +53,56 @@ class World_Map:
                 if self.town_symbol in neighbors:
                     pass
                 else:
-                    T = Town('name', (x,y), self)
+                    T = Town('name', (y,x), self) # Stored as (Y,X) instead of X,Y
                     self.towns.append(T)
                     break
-
-    def find_closest_neighbor(self, location, radius):
-        for i in range(radius):
-            neighbors = []
-            x = location[0]
-            y = location[1]
-            for a in range(-radius, radius + 1):      # x axis
-                for b in range(-radius, radius + 1):    # y axis
-                    # Prevents errors when attempting to check nonexistent locations around edge/corner points
-                    try:
-                        neighbors.append(self.world_map[y+b][x+a])
-                    except IndexError:
-                        pass
-
-            return neighbors[0]
-
+        
     def place_roads(self):
-        for town in self.towns:
-            if not town.has_road:
-                neighbor = self.find_closest_neighbor(town.location, 2)
+        # Sorts list of town x,y values (location), effectively 'grouping neighbors'
+        locs = []
+        for i in self.towns:
+            locs.append(i.location)
+        locs = sorted(locs)
+        
+        for i in range(len(locs)-1):
+            start = locs[i]
+            end = locs[i + 1]
+          
+            x = start[1]
+            y = start[0]
+            
+            while y < end[0]-1:
+                if y > end[0]-1:
+                    y -= 1
+                else:
+                    y += 1
+                if self.world_map[y][x] != self.town_symbol:
+                        self.world_map[y][x] = self.road_symbol
+            while x != end[1]:
+                if x > end[1]:
+                    x -= 1
+                else:
+                    x += 1
+            
+                if self.world_map[y][x] != self.town_symbol:
+                    try:
+                        if self.world_map[y+1][x] and self.world_map[y-1][x] != self.road_symbol:
+                            self.world_map[y][x] = self.road_symbol
+                    except: pass
 
-                print(neighbor)
+def clear_screen():
+    os.system('clear_screen' if os.name=='nt' else 'clear') 
 
-                start = town.location
-                #end = neighbor.location
-
-
-M = World_Map(16,8) # Make 'World Map'
-M.place_towns(12, 1) # Make 'Towns'
-M.place_roads()
-M.display() # Show map
-
+while 1:
+    user_input = input('''
+    1: Generate world and preview.
+    2: Select world and begin.
+    3: Load Game
+    
+    Selection: ''')
+    if user_input == '1':
+        clear_screen()
+        M = World_Map(64,32) # Make 'World Map'
+        M.place_towns(24, 1) # Make 'Towns'
+        M.place_roads() # Make 'Roads'
+        M.display() # Show map
